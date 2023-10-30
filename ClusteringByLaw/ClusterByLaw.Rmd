@@ -1,0 +1,104 @@
+---
+  title: "ClusterByLaw"
+author: "Marcela/Fernando"
+date: "01/03/2022"
+
+
+
+library("R.matlab")
+library(cluster)
+library(stats)
+library(factoextra)
+library(mclust)
+library("ggplot2")
+library("ggdendro")
+library("dendextend")
+library("ape")
+
+set.seed(1234) # the clustering structure doesn't change with the seed.
+
+
+
+
+#load the matrix
+#mat<-readMat("send_matrix.mat")"
+loadvec = c("E_9_10_11_qua/SummaryDendrogram.mat", "E_11_18_22_qua/SummaryDendrogram.mat", "E_45_46_40_qua/SummaryDendrogram.mat", "E_75_74_82_qua/SummaryDendrogram.mat", "E_108_109_102_qua/SummaryDendrogram.mat", "E_9_10_11_ter/SummaryDendrogram.mat", "E_11_18_22_ter/SummaryDendrogram.mat", "E_45_46_40_ter/SummaryDendrogram.mat", "E_75_74_82_ter/SummaryDendrogram.mat", "E_108_109_102_ter/SummaryDendrogram.mat")
+cortical = c("RightPreFrontal", "LeftPreFrontal", "LeftTemporal", "OCcipital", "RightTemporal")
+#uu = 1
+
+#datos=readMat(loadvec[ul])
+#datos = datos$mat.u
+for(u in 1:10){
+setwd("Z:/servidor/MATLAB/ExportFolder/DissimilarityMatrix")
+datos<-readMat(loadvec[u])
+
+#datos=readMat("RPF_retmat.mat")
+mat = datos$retmat
+#mat = datos[uu,,]
+mat = mat/18
+
+#for(j in 1:18){
+#mat=datos[j,,]
+
+
+
+#labels
+if(u < 6){
+context=c("(000)","(100)","(200)","(210)","(020)","(120)","(001)","(101)","(021)","(121)","(002)","(012)")}
+if(u > 5){
+context=c('200', '210', '020', '120', '201', '211', '021', '121', '002', '102', '012', '112')}
+
+
+rownames(mat)=context
+colnames(mat)=context
+
+
+#fin<-(mat-18*diag(12))/18
+
+#round(fin,2)
+
+#matrix as distance
+fin.dis=as.dist(mat)
+
+hward=hclust(fin.dis,method = "ward.D" )
+
+#cor(x=fin.dis,cophenetic(hward))  
+
+#fviz_dend(x = hward, k = 4, cex = 0.9) +
+#  geom_hline(yintercept = 0.65, linetype = "dashed") +
+#  labs(title = "Herarchical clustering",
+#       subtitle = "Distancia euclidea, Ward criteria, K=4")
+
+
+
+hward.g4=cutree(hward,k=4)
+
+hpt = as.dendrogram(hward)
+
+phclu = set(hpt, "labels_col", value = c("green", "blue", "red", "black", "coral", "chartreuse", "grey", "brown") , k=4)
+
+plot(phclu)
+
+#unum = toString(j)
+if(u < 6){
+cab = cortical[u]
+
+svnm = "qua.jpg"
+}
+
+if(u > 5){
+cab = cortical[u-5]
+
+svnm = "ter.jpg"
+}
+
+setwd("Z:/servidor/MATLAB/ExportFolder/ClusteringByLaw")
+
+openfi = paste(cab,svnm)
+
+jpeg(openfi)
+
+plot(phclu)
+
+dev.off()
+}
